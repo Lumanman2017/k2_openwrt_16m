@@ -34,13 +34,14 @@ jobs:
             device-tree-compiler libelf-dev autoconf automake libtool autopoint \
             p7zip p7zip-full texinfo qemu-utils upx
 
-      - name: 拉取 OpenWrt 24.10 源码
+      - name: 拉取 OpenWrt 24.10 源码 + 手动注入K2补丁
         run: |
           git clone https://github.com/openwrt/openwrt.git -b $OPENWRT_BRANCH openwrt
           cd openwrt
-          cp ../k2src/24.10/custom.sh ./
-          chmod +x custom.sh
-          ./custom.sh
+          # 拷贝dts文件
+          cp ../k2src/mt7620a_phicomm_k2-A2-v22.4-16m.dts target/linux/ramips/dts/
+          # 追加设备定义到mt7620.mk
+          cat ../k2src/mt7620.mk >> target/linux/ramips/image/mt7620.mk
 
       - name: Feeds 更新 & 安装
         run: |
