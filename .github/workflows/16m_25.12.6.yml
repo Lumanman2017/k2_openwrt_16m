@@ -1,6 +1,7 @@
 #=================================================
 # 适配 Ubuntu24.04 + OpenWrt main(snapshot)
 # 斐讯K2 A2 硬改16M Flash | shownb/k2_openwrt_16m
+# 修复：clone失败导致openwrt目录缺失
 #=================================================
 name: 16m 固件-K2A2-main-snapshot
 
@@ -12,7 +13,8 @@ env:
   TZ: Asia/Shanghai
   REPO_URL: https://github.com/openwrt/openwrt
   REPO_BRANCH: main
-  GH_PROXY: https://ghproxy.net/
+  # 换稳定ghproxy镜像
+  GH_PROXY: https://mirror.ghproxy.com/
 
 jobs:
   build:
@@ -21,7 +23,7 @@ jobs:
       - name: 检出仓库
         uses: actions/checkout@v4
 
-      - name: 释放磁盘空间（必须，否则编译盘不够）
+      - name: 释放磁盘空间
         run: |
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
           df -h
@@ -40,19 +42,25 @@ jobs:
           sudo apt-get clean
           sudo ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 
-      - name: 克隆 OpenWrt 源码（ghproxy加速）
+      - name: 克隆 OpenWrt 源码（稳定ghproxy）
         run: |
           git clone ${GH_PROXY}${REPO_URL} -b ${REPO_BRANCH} openwrt
+          # 关键校验：克隆失败直接终止
+          if [ ! -d "openwrt" ];then
+            echo "❌ OpenWrt源码克隆失败，openwrt文件夹不存在！"
+            exit 1
+          fi
+          ls -ld openwrt
 
       - name: 注入 K2 A2 16M 补丁 v22.4（shownb仓库）
         run: |
           cd openwrt
-          # 下载独立16M设备树
           curl -L ${GH_PROXY}https://raw.githubusercontent.com/shownb/k2_openwrt_16m/main/dts/mt7620a_phicomm_k2-A2-v22.4-16m.dts \
             -o target/linux/ramips/dts/mt7620a_phicomm_k2-A2-v22.4-16m.dts
-          # 追加设备定义片段，不删除原版mt7620.mk（重点！）
           curl -L ${GH_PROXY}https://raw.githubusercontent.com/shownb/k2_openwrt_16m/main/mk_add.txt \
             >> target/linux/ramips/image/mt7620.mk
+          ls target/linux/ramips/dts | grep k2
+          grep phicomm_k2_A2_v22.4_16m target/linux/ramips/image/mt7620.mk
 
       - name: feeds 初始化更新
         run: |
