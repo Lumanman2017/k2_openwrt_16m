@@ -1285,6 +1285,7 @@ define Device/zyxel_keenetic-viva
   SUPPORTED_DEVICES += kng_rc
 endef
 TARGET_DEVICES += zyxel_keenetic-viva
+
 define Device/phicomm_k2_16m
   SOC := mt7620a
   IMAGE_SIZE := 16128k
