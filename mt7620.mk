@@ -838,19 +838,30 @@ endef
 TARGET_DEVICES += phicomm_psg1218a
 
 # K2 16M v22.4
+# define Device/phicomm_k2
+#   SOC := mt7620a
+#   IMAGE_SIZE := 15872k
+#   DEVICE_VENDOR := Phicomm
+#   DEVICE_MODEL := K2
+#   DEVICE_VARIANT := v22.4
+#  DEVICE_PACKAGES := kmod-mt76x2
+#  SUPPORTED_DEVICES += phicomm,k2
+#  DTS := mt7620a_phicomm_k2-v22.4
+# endef
+# TARGET_DEVICES += phicomm_k2
+
 define Device/phicomm_k2
   SOC := mt7620a
   IMAGE_SIZE := 15872k
   DEVICE_VENDOR := Phicomm
   DEVICE_MODEL := K2
-  DEVICE_VARIANT := v22.4
   DEVICE_PACKAGES := kmod-mt76x2
   SUPPORTED_DEVICES += phicomm,k2
   DTS := mt7620a_phicomm_k2-v22.4
 endef
 TARGET_DEVICES += phicomm_k2
 
-define Device/phicomm_psg1218b
+ define Device/phicomm_psg1218b
   SOC := mt7620a
   IMAGE_SIZE := 7872k
   DEVICE_VENDOR := Phicomm
@@ -858,8 +869,8 @@ define Device/phicomm_psg1218b
   DEVICE_VARIANT := Bx
   DEVICE_PACKAGES := kmod-mt76x2
   SUPPORTED_DEVICES += psg1218 psg1218b
-endef
-TARGET_DEVICES += phicomm_psg1218b
+ endef
+ TARGET_DEVICES += phicomm_psg1218b
 
 define Device/planex_cs-qr10
   SOC := mt7620a
