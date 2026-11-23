@@ -1,11 +1,10 @@
 #=================================================
-# https://github.com/miaoxinwei/openwrt_build
-# Description: Build OpenWrt using GitHub Actions
-# Lisence: AGPL-3.0
-# Author: MXW
+# 适配 OpenWrt main (snapshot 25.x 滚动版)
+# 目标：斐讯K2 A2 硬改16M Flash
+# 依赖 shownb/k2_openwrt_16m 16M dts配置
 #=================================================
 
-name: 16m 固件
+name: 16m 固件-K2A2-main-snapshot
 
 on:
   repository_dispatch:
@@ -13,65 +12,58 @@ on:
 
 env:
   TZ: Asia/Shanghai
-
-
+  # OpenWrt 分支：main = snapshot滚动版（你要的25.x）
+  REPO_URL: https://github.com/openwrt/openwrt
+  REPO_BRANCH: main
+  # ghproxy加速，国内友好
+  GH_PROXY: shturl.cc/V1wxwc1NyX
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: checkout
-        uses: actions/checkout@main
-        
-      - name: 安装编译环境
+      - name: 检出仓库
+        uses: actions/checkout@v4
+
+      - name: 安装编译依赖
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
           sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc
-          sudo -E apt-get -qq update
-          sudo -E apt-get -qq install build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch python3.5 python2.7 unzip zlib1g-dev lib32gcc-s1 libc6-dev-i386 subversion flex uglifyjs git-core gcc-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler g++-multilib antlr3 gperf wget curl swig rsync
-          sudo -E apt-get clean
-          
+          sudo apt-get -qq update
+          sudo apt-get -qq install -y build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch unzip zlib1g-dev lib32gcc-s1 libc6-dev-i386 subversion flex uglifyjs git-core gcc-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler g++-multilib antlr3 gperf wget curl swig rsync
+          sudo apt-get clean
           sudo ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
-          sudo timedatectl set-timezone "$TZ"
 
-      - name: 克隆代码
-        env:
-          REPO_URL: https://github.com/openwrt/openwrt
-          REPO_BRANCH: openwrt-21.02
-        run: git clone $REPO_URL -b $REPO_BRANCH openwrt
+      - name: 克隆 OpenWrt 源码（带加速）
+        run: |
+          git clone ${GH_PROXY}${REPO_URL} -b ${REPO_BRANCH} openwrt
 
-      - name: 自定义配置
-        env:
-          CUSTOM_SH: 'custom.sh'
+      - name: 注入 K2 A2 16M 补丁（shownb仓库新版DTS + mt7620.mk）
         run: |
           cd openwrt
-          rm ./target/linux/ramips/image/mt7620.mk
-          rm ./target/linux/ramips/dts/mt7620a_phicomm_psg1218.dtsi
-          curl https://raw.githubusercontent.com/shownb/k2_openwrt_16m/main/mt7620.mk -L -o ./target/linux/ramips/image/mt7620.mk
-          curl https://raw.githubusercontent.com/shownb/k2_openwrt_16m/main/mt7620a_phicomm_psg1218.dtsi -L -o ./target/linux/ramips/dts/mt7620a_phicomm_psg1218.dtsi
-          mv ../21.02/$CUSTOM_SH ./ && chmod 777 $CUSTOM_SH && ./$CUSTOM_SH
+          # 下载16M专用DTS v22.4（推荐，无permanent_config）
+          curl -L ${GH_PROXY}https://raw.githubusercontent.com/shownb/k2_openwrt_16m/main/dts/mt7620a_phicomm_k2-A2-v22.4-16m.dts -o target/linux/ramips/dts/mt7620a_phicomm_k2-A2-v22.4-16m.dts
+          # 追加16M设备定义到mt7620.mk，不删除原文件（重点！旧脚本rm整个mk是大坑，新版源码结构不能删）
+          curl -L ${GH_PROXY}https://raw.githubusercontent.com/shownb/k2_openwrt_16m/main/mk_add.txt >> target/linux/ramips/image/mt7620.mk
 
-      - name: 构建程序包
+      - name: feeds 初始化
         run: |
           cd openwrt
-          echo "here do noting"
-          #echo -e "src-git routing https://git.openwrt.org/feed/routing.git" >> feeds.conf.default
-          #echo -e "src-git telephony https://git.openwrt.org/feed/telephony.git" >> feeds.conf.default
-          
           ./scripts/feeds clean
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
-      - name: config文件
+      - name: 加载配置文件
         run: |
           cd openwrt
           rm -f .config*
-          cp ../21.02/simple.config .config
+          # 请你在仓库根目录新建 simple.config 放到根目录，或者自行修改路径
+          cp ../simple.config .config
           make defconfig
 
-      - name: 下载编译所需源码
+      - name: 预下载源码包
         run: |
           cd openwrt
           make download -j8
@@ -80,23 +72,23 @@ jobs:
       - name: 多线程编译
         run: |
           cd openwrt
-          echo -e "$(nproc) thread build."
+          echo "线程数: $(nproc)"
           make -j$(nproc) V=s
-          
-      - name: 单线程编译
+
+      - name: 失败时单线程重试
         if: failure()
         run: |
           cd openwrt
           make -j1 V=s
 
-      - name: 清理不必要的文件
+      - name: 清理无用文件，只保留固件
         run: |
           cd openwrt
           find ./bin/targets/ -type d -name "packages" | xargs rm -rf {}
           find ./bin/targets/ -name "*rootfs*img*" | xargs rm -rf {}
 
-      - name: 上传固件
-        uses: actions/upload-artifact@master
+      - name: 上传固件产物
+        uses: actions/upload-artifact@v4
         with:
-          name: "16m_spi_k2"
+          name: "K2A2-16M-main-snapshot-fw"
           path: ./openwrt/bin/targets/
