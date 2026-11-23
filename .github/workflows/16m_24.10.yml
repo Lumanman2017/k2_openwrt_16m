@@ -39,7 +39,6 @@ jobs:
           git clone https://github.com/openwrt/openwrt.git -b $OPENWRT_BRANCH openwrt
           cd openwrt
           cp ../k2src/mt7620a_phicomm_psg1218.dtsi target/linux/ramips/dts/
-          # 这里改用patch方式，不再直接cat追加，避免mk文件语法错乱
           cat ../k2src/mt7620.mk >> target/linux/ramips/image/mt7620.mk
 
       - name: Feeds 更新 & 安装
