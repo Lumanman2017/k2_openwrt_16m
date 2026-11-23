@@ -1285,3 +1285,13 @@ define Device/zyxel_keenetic-viva
   SUPPORTED_DEVICES += kng_rc
 endef
 TARGET_DEVICES += zyxel_keenetic-viva
+define Device/phicomm_k2_16m
+  SOC := mt7620a
+  IMAGE_SIZE := 16128k
+  DEVICE_VENDOR := Phicomm
+  DEVICE_MODEL := K2 (PSG1218 16M, Breed)
+  DEVICE_DTS := mt7620a_phicomm_psg1218
+  DEVICE_PACKAGES := kmod-mt7603
+  SUPPORTED_DEVICES += psg1218
+endef
+TARGET_DEVICES += phicomm_k2_16m
