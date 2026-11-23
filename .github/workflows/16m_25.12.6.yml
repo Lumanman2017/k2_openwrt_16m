@@ -1,7 +1,7 @@
 #=================================================
 # 适配 Ubuntu24.04 + OpenWrt main(snapshot)
 # 斐讯K2 A2 硬改16M Flash | shownb/k2_openwrt_16m
-# 修复：mirror.ghproxy.com 域名无法解析
+# 修复 TERM=unknown ncurses报错
 #=================================================
 name: 16m 固件-K2A2-main-snapshot
 
@@ -11,6 +11,7 @@ on:
 
 env:
   TZ: Asia/Shanghai
+  TERM: xterm
   REPO_URL: https://github.com/openwrt/openwrt
   REPO_BRANCH: main
 
@@ -42,7 +43,6 @@ jobs:
 
       - name: 克隆 OpenWrt 源码（原生地址 + 重试机制）
         run: |
-          # 重试3次，每次间隔15秒
           for i in {1..3}; do
             git clone ${REPO_URL} -b ${REPO_BRANCH} openwrt && break
             echo "第$i次克隆失败，等待15s重试"
@@ -54,13 +54,26 @@ jobs:
           fi
           ls -ld openwrt
 
-      - name: 注入 K2 A2 16M 补丁 v22.4（shownb仓库）
+      - name: 注入 K2 A2 16M 补丁 v22.4（shownb仓库，带重试）
         run: |
           cd openwrt
-          curl -L https://raw.githubusercontent.com/shownb/k2_openwrt_16m/main/dts/mt7620a_phicomm_k2-A2-v22.4-16m.dts \
-            -o target/linux/ramips/dts/mt7620a_phicomm_k2-A2-v22.4-16m.dts
-          curl -L https://raw.githubusercontent.com/shownb/k2_openwrt_16m/main/mk_add.txt \
-            >> target/linux/ramips/image/mt7620.mk
+          # 下载dts
+          for i in {1..3}; do
+            curl -L https://raw.githubusercontent.com/shownb/k2_openwrt_16m/main/dts/mt7620a_phicomm_k2-A2-v22.4-16m.dts \
+              -o target/linux/ramips/dts/mt7620a_phicomm_k2-A2-v22.4-16m.dts && break
+            echo "DTS下载失败，重试 $i"
+            sleep 10
+          done
+          if [ ! -f target/linux/ramips/dts/mt7620a_phicomm_k2-A2-v22.4-16m.dts ];then
+            echo "❌ DTS文件下载失败"
+            exit 1
+          fi
+          # 追加mk片段
+          for i in {1..3}; do
+            curl -L https://raw.githubusercontent.com/shownb/k2_openwrt_16m/main/mk_add.txt >> target/linux/ramips/image/mt7620.mk && break
+            echo "mk_add.txt下载失败，重试 $i"
+            sleep 10
+          done
           ls target/linux/ramips/dts | grep k2
           grep phicomm_k2_A2_v22.4_16m target/linux/ramips/image/mt7620.mk
 
@@ -71,12 +84,12 @@ jobs:
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
-      - name: 加载配置文件
+      - name: 加载配置文件（olddefconfig 替代 defconfig，解决终端报错）
         run: |
           cd openwrt
           rm -f .config*
           cp ../simple.config .config
-          make defconfig
+          make olddefconfig
 
       - name: 预下载源码包
         run: |
