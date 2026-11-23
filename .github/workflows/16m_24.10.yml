@@ -38,8 +38,8 @@ jobs:
         run: |
           git clone https://github.com/openwrt/openwrt.git -b $OPENWRT_BRANCH openwrt
           cd openwrt
-          # 拷贝dts文件
-          cp ../k2src/mt7620a_phicomm_k2-A2-v22.4-16m.dts target/linux/ramips/dts/
+          # 拷贝dtsi文件
+          cp ../k2src/mt7620a_phicomm_psg1218.dtsi target/linux/ramips/dts/
           # 追加设备定义到mt7620.mk
           cat ../k2src/mt7620.mk >> target/linux/ramips/image/mt7620.mk
 
