@@ -34,12 +34,16 @@ jobs:
             device-tree-compiler libelf-dev autoconf automake libtool autopoint \
             p7zip p7zip-full texinfo qemu-utils upx
 
-      - name: 拉取 OpenWrt 24.10 源码 + 注入K2设备
+      - name: 拉取 OpenWrt 24.10 源码 + 注入K2设备（删除psg1218a）
         run: |
           git clone https://github.com/openwrt/openwrt.git -b $OPENWRT_BRANCH openwrt
           cd openwrt
           cp ../k2src/mt7620a_phicomm_psg1218.dtsi target/linux/ramips/dts/
-          cat ../k2src/mt7620.mk >> target/linux/ramips/image/mt7620.mk
+          # 过滤删除 phicomm_psg1218a 整块设备定义，避免重复追加
+          awk '/define Device\/phicomm_psg1218a/,/endef/{next} 1' ../k2src/mt7620.mk > /tmp/k2_filtered.mk
+          if ! grep -q "phicomm_k2" target/linux/ramips/image/mt7620.mk; then
+            cat /tmp/k2_filtered.mk >> target/linux/ramips/image/mt7620.mk
+          fi
 
       - name: Feeds 更新 & 安装
         run: |
@@ -48,12 +52,13 @@ jobs:
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
-      - name: 加载K2配置 + 自动应答配置（关键修复）
+      - name: 加载K2配置，清除psg1218a选项
         run: |
           cd openwrt
           cp ../k2src/k2_16m.config .config
-          # 自动全部默认回答，替代容易失败的 olddefconfig
-          yes "" | make defconfig
+          # 删除psg1218a设备配置项
+          sed -i '/CONFIG_TARGET_ramips_mt7620a_DEVICE_phicomm_psg1218a/d' .config
+          make defconfig
 
       - name: 预下载源码包（加速编译）
         run: |
