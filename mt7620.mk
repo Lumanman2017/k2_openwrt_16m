@@ -825,16 +825,18 @@ define Device/phicomm_psg1208
 endef
 TARGET_DEVICES += phicomm_psg1208
 
-define Device/phicomm_psg1218a
+define Device/phicomm_k2
   SOC := mt7620a
   IMAGE_SIZE := 15872k
   DEVICE_VENDOR := Phicomm
-  DEVICE_MODEL := PSG1218
-  DEVICE_VARIANT:= Ax
+  DEVICE_MODEL := K2
+  DEVICE_VARIANT := v22.4
   DEVICE_PACKAGES := kmod-mt76x2
-  SUPPORTED_DEVICES += psg1218 psg1218a
+  SUPPORTED_DEVICES += phicomm,k2
+  DTS := mt7620a_phicomm_k2-v22.4
 endef
-TARGET_DEVICES += phicomm_psg1218a
+TARGET_DEVICES += phicomm_k2
+
 
 define Device/phicomm_psg1218b
   SOC := mt7620a
