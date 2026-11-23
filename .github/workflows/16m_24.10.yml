@@ -13,8 +13,9 @@ jobs:
     steps:
       - name: 拉取 shownb K2补丁仓库
         uses: actions/checkout@v4
-        repository: shownb/k2_openwrt_16m
-        path: k2src
+        with:
+          repository: shownb/k2_openwrt_16m
+          path: k2src
 
       - name: 释放磁盘空间
         run: |
@@ -37,10 +38,8 @@ jobs:
         run: |
           git clone https://github.com/openwrt/openwrt.git -b $OPENWRT_BRANCH openwrt
           cd openwrt
-          # 复制作者原版custom.sh到源码目录
           cp ../k2src/24.10/custom.sh ./
           chmod +x custom.sh
-          # 执行脚本自动打补丁（dts、mt7620.mk、设备注册）
           ./custom.sh
 
       - name: Feeds 更新 & 安装
