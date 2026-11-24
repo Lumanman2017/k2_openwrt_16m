@@ -40,7 +40,7 @@ jobs:
           cd openwrt
           # 复制补丁dtsi
           cp ../k2src/mt7620a_phicomm_psg1218.dtsi target/linux/ramips/dts/
-          # 写入修改后的mt7620.mk（shownb原版逻辑）
+          # 写入修改后的mt7620.mk
           awk '/define Device\/phicomm_psg1218/,/endef/{next} 1' ../k2src/mt7620.mk > /tmp/k2_filtered.mk
           if ! grep -q "phicomm_psg1218" target/linux/ramips/image/mt7620.mk; then
             cat /tmp/k2_filtered.mk >> target/linux/ramips/image/mt7620.mk
