@@ -11,10 +11,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: 拉取 shownb K2补丁仓库
+      - name: 拉取K2补丁仓库
         uses: actions/checkout@v7
         with:
-          repository: shownb/k2_openwrt_16m
+          repository: lumanman2017/k2_openwrt_16m
           path: k2src
 
       - name: 释放磁盘空间
@@ -41,8 +41,8 @@ jobs:
           # 复制补丁dtsi
           cp ../k2src/mt7620a_phicomm_psg1218.dtsi target/linux/ramips/dts/
           # 写入修改后的mt7620.mk（shownb原版逻辑）
-          awk '/define Device\/phicomm_psg1218a/,/endef/{next} 1' ../k2src/mt7620.mk > /tmp/k2_filtered.mk
-          if ! grep -q "phicomm_psg1218a" target/linux/ramips/image/mt7620.mk; then
+          awk '/define Device\/phicomm_psg1218/,/endef/{next} 1' ../k2src/mt7620.mk > /tmp/k2_filtered.mk
+          if ! grep -q "phicomm_psg1218" target/linux/ramips/image/mt7620.mk; then
             cat /tmp/k2_filtered.mk >> target/linux/ramips/image/mt7620.mk
           fi
 
@@ -53,7 +53,7 @@ jobs:
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
-      - name: 加载K2 16M配置（重点：删掉了删除psg1218a那一行！）
+      - name: 加载K2 16M配置
         run: |
           cd openwrt
           cp ../k2src/k2_16m.config .config
