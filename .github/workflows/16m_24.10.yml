@@ -39,7 +39,6 @@ jobs:
           git clone https://github.com/openwrt/openwrt.git -b $OPENWRT_BRANCH openwrt
           cd openwrt
           cp ../k2src/mt7620a_phicomm_psg1218.dtsi target/linux/ramips/dts/
-          # 过滤删除 phicomm_psg1218a 整块设备定义，避免重复追加
           awk '/define Device\/phicomm_psg1218a/,/endef/{next} 1' ../k2src/mt7620.mk > /tmp/k2_filtered.mk
           if ! grep -q "phicomm_k2" target/linux/ramips/image/mt7620.mk; then
             cat /tmp/k2_filtered.mk >> target/linux/ramips/image/mt7620.mk
@@ -56,7 +55,6 @@ jobs:
         run: |
           cd openwrt
           cp ../k2src/k2_16m.config .config
-          # 删除psg1218a设备配置项
           sed -i '/CONFIG_TARGET_ramips_mt7620a_DEVICE_phicomm_psg1218a/d' .config
           make defconfig
 
