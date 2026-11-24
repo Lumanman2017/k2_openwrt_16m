@@ -55,7 +55,6 @@ jobs:
         run: |
           cd openwrt
           cp ../k2src/k2_16m.config .config
-          sed -i '/CONFIG_TARGET_ramips_mt7620a_DEVICE_phicomm_psg1218a/d' .config
           make defconfig
 
       - name: 预下载源码包（加速编译）
