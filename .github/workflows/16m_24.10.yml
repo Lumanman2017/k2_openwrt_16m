@@ -18,7 +18,7 @@ jobs:
       - name: 拉取K2补丁仓库
         uses: actions/checkout@v7
         with:
-          repository: lumanman2017/k2_openwrt_16m
+          repository: Lumanman2017/k2_openwrt_16m
           path: k2src
 
       - name: 释放磁盘空间
