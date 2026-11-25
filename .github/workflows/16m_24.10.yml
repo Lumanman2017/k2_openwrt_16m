@@ -60,7 +60,7 @@ jobs:
       - name: 加载K2 16M配置
         run: |
           cd openwrt
-          cp ../k2src/k2_16m.config .config
+          cp ../k2src/config/k2_16m.config  .config
           make defconfig
           # 增加调试打印，确认选中设备
           grep CONFIG_TARGET_DEVICE .config
