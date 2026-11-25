@@ -56,6 +56,14 @@ jobs:
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
+        - name: 移除循环依赖故障包
+         run: |
+          cd openwrt
+          rm -rf feeds/packages/net/dnsdist
+          rm -rf feeds/packages/net/snort3
+          rm -rf feeds/packages/net/knot-resolver
+          rm -rf feeds/packages/net/openappid
+
       - name: 加载K2 16M配置
         run: |
           cd openwrt
