@@ -77,7 +77,7 @@ jobs:
           rm -f .config .config.old
           make -C scripts/config clean
           # 复制配置
-          cp /k2src/config/k2_16m.config .config
+          cp ../k2src/config/k2_16m.config .config
           # 改用 oldconfig 而不是 defconfig，并且打开详细输出
           make oldconfig V=99
 
