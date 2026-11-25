@@ -1,2 +1,2 @@
 # k2_openwrt_16m
-hicomm psg1218 k2 16m
+PHICOMM PSG1218 K2 A2 16m
