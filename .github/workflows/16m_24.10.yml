@@ -53,20 +53,32 @@ jobs:
       - name: Feeds 更新 & 安装
         run: |
           cd openwrt
-        ./scripts/feeds update -a
-        ./scripts/feeds install -a
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
 
+      - name: 移除递归依赖问题包源码
+        run: |
+          cd openwrt
+          rm -rf feeds/packages/net/dnsdist
+          rm -rf feeds/packages/net/snort3
+          rm -rf feeds/packages/net/knot-resolver
+          rm -rf feeds/packages/net/openappid
 
       - name: 加载K2 16M配置
         run: |
           cd openwrt
           cp ../k2src/config/k2_16m.config  .config
-          # 清除已知自循环依赖包
-            sed -i '/CONFIG_PACKAGE_dnsdist/d' .config
-            sed -i '/CONFIG_PACKAGE_dnsdist-full/d' .config
-            sed -i '/CONFIG_PACKAGE_snort3/d' .config
-            sed -i '/CONFIG_PACKAGE_knot-resolver/d' .config
-            sed -i '/CONFIG_PACKAGE_openappid/d' .config
+          # 清除已知自循环依赖包配置
+          sed -i '/CONFIG_PACKAGE_dnsdist/d' .config
+          sed -i '/CONFIG_PACKAGE_dnsdist-full/d' .config
+          sed -i '/CONFIG_PACKAGE_snort3/d' .config
+          sed -i '/CONFIG_PACKAGE_knot-resolver/d' .config
+          sed -i '/CONFIG_PACKAGE_openappid/d' .config
+          # 清理行尾多余 > 和 Windows CRLF
+          sed -i 's/[[:space:]]*>$//' .config
+          sed -i 's/\r$//' .config
+          # 删除开头 #基础平台 注释消除警告
+          sed -i '/^#基础平台/d' .config
           make defconfig
           # 增加调试打印，确认选中设备
           grep CONFIG_TARGET_DEVICE .config
