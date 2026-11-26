@@ -49,6 +49,10 @@ jobs:
           if ! grep -q "phicomm_psg1218" target/linux/ramips/image/mt7620.mk; then
             cat /tmp/k2_filtered.mk >> target/linux/ramips/image/mt7620.mk
           fi
+          # ========== 复制uci-defaults预置配置 ==========
+          mkdir -p files/etc/uci-defaults
+          cp -r ../k2src/etc/uci-defaults/99-custom-setting files/etc/uci-defaults/
+          chmod +x files/etc/uci-defaults/99-custom-setting
 
       - name: Feeds 更新 & 安装
         run: |
@@ -63,22 +67,16 @@ jobs:
           rm -rf feeds/packages/net/snort3
           rm -rf feeds/packages/net/knot-resolver
           rm -rf feeds/packages/net/openappid
-
+          
       - name: 加载K2 16M配置
         run: |
           cd openwrt
+          # 清理旧的kconfig缓存
           rm -f .config .config.old
           make -C scripts/config clean
-          # 清洗配置
-          sed 's/\r//g; /^#/d' ../k2src/config/k2_16m.config > .config
-          # 打印第67行，看坏内容
-          echo "===== 第67行内容 ====="
-          sed -n '67p' .config
-          echo "===== 前后几行 ====="
-          sed -n '64,70p' .config
-          make defconfig
-
-
+          # 复制配置，使用相对路径
+          cp ../k2src/config/k2_16m.config .config
+          make oldconfig V=99
 
       - name: 预下载源码包（加速编译）
         run: |
@@ -99,5 +97,5 @@ jobs:
       - name: 上传固件
         uses: actions/upload-artifact@v7
         with:
-          name: K2-16M-OpenWrt-24.10-V1.0
+          name: K2-16M-OpenWrt-24.10-V1.0.1
           path: openwrt/bin/targets/
