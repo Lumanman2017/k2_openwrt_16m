@@ -93,5 +93,5 @@ jobs:
       - name: 上传固件
         uses: actions/upload-artifact@v7
         with:
-          name: K2-16M-OpenWrt-24.10-V1.0.1
+          name: K2-16M-OpenWrt-24.10-V1.0.2
           path: openwrt/bin/targets/
