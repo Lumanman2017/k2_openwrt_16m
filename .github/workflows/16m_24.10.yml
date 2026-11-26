@@ -69,10 +69,15 @@ jobs:
           cd openwrt
           rm -f .config .config.old
           make -C scripts/config clean
-          # 清洗配置：移除Windows换行\r、删除#注释行，输出为干净的.config
+          # 清洗配置
           sed 's/\r//g; /^#/d' ../k2src/config/k2_16m.config > .config
-          # 自动补齐依赖，无交互
+          # 打印第67行，看坏内容
+          echo "===== 第67行内容 ====="
+          sed -n '67p' .config
+          echo "===== 前后几行 ====="
+          sed -n '64,70p' .config
           make defconfig
+
 
 
       - name: 预下载源码包（加速编译）
