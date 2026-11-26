@@ -65,14 +65,14 @@ jobs:
           rm -rf feeds/packages/net/openappid
 
       - name: 加载K2 16M配置
-  run: | 
-  cd openwrt
-      # 清理旧的kconfig缓存
-      rm -f .config .config.old
-      make -C scripts/config clean
-      # 复制配置，使用相对路径
-      cp ../k2src/config/k2_16m.config .config
-      make oldconfig V=99
+        run: |
+          cd openwrt
+          # 清理旧的kconfig缓存
+          rm -f .config .config.old
+          make -C scripts/config clean
+          # 复制配置，使用相对路径
+          cp ../k2src/config/k2_16m.config .config
+          make oldconfig V=99
 
       - name: 预下载源码包（加速编译）
         run: |
