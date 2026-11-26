@@ -1,1 +1,51 @@
+#!/bin/sh
 
+# ========== 1. LAN 默认IP ==========
+uci set network.lan.ipaddr='192.168.99.1'
+uci set network.lan.netmask='255.255.255.0'
+
+# ========== 2. 时区（上海） ==========
+uci set system.@system[0].zonename='Asia/Shanghai'
+uci set system.@system[0].timezone='CST-8'
+
+# ========== 3. LuCI 默认主题（bootstrap / argon / material 等） ==========
+# bootstrap 原生；argon 最常用（需要.config里勾选编译luci-theme-argon）
+uci set luci.main.mediaurlbase='/luci-static/bootstrap'
+
+# ========== 4. WiFi 设置（K2 radio0=5G，radio1=2.4G） ==========
+# 5G
+uci set wireless.radio0.disabled='0'
+uci set wireless.default_radio0.ssid='Phicomm-5G'
+uci set wireless.default_radio0.encryption='sae-mixed'
+uci set wireless.default_radio0.key='9876543210'
+uci set wireless.default_radio0.network='lan'
+uci set wireless.radio0.country='CN'
+
+# 2.4G
+uci set wireless.radio1.disabled='0'
+uci set wireless.default_radio1.ssid='Phicomm-2.4G'
+uci set wireless.default_radio1.encryption='sae-mixed'
+uci set wireless.default_radio1.key='9876543210'
+uci set wireless.default_radio1.network='lan'
+uci set wireless.radio1.country='CN'
+
+# ========== 5. WAN6 自动获取 IPv6 ==========
+uci set network.wan6=interface
+uci set network.wan6.proto='dhcpv6'
+uci set network.wan6.ifname='@wan'
+uci set network.wan6.reqprefix='auto'
+uci set network.wan6.ra_forward='1'
+uci set network.wan6.disabled='0'
+
+# LAN IPv6通告
+uci set network.lan.ipv6='1'
+uci set network.lan.ra_management='1'
+uci set network.lan.ra_dhcp='1'
+uci set network.lan.ndp='1'
+
+# 防火墙wan区域包含wan6
+uci set firewall.@zone[1].network='wan wan6'
+
+# 保存uci
+uci commit
+exit 0
