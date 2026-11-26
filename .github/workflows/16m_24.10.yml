@@ -50,9 +50,9 @@ jobs:
             cat /tmp/k2_filtered.mk >> target/linux/ramips/image/mt7620.mk
           fi
           # ========== 复制uci-defaults预置配置 ==========
-          mkdir -p files/etc/uci-defaults
-          cp -r ../k2src/etc/uci-defaults/99-custom-setting files/etc/uci-defaults/
-          chmod +x files/etc/uci-defaults/99-custom-setting
+          #mkdir -p files/etc/uci-defaults
+          #cp -r ../k2src/etc/uci-defaults/99-custom-setting files/etc/uci-defaults/
+          #chmod +x files/etc/uci-defaults/99-custom-setting
 
       - name: Feeds 更新 & 安装
         run: |
