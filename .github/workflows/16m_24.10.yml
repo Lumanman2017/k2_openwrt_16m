@@ -67,11 +67,13 @@ jobs:
       - name: 加载K2 16M配置
         run: |
           cd openwrt
-          # 清理旧的kconfig缓存
           rm -f .config .config.old
           make -C scripts/config clean
-          cp ../k2src/config/k2_16m.config .config
-          make oldconfig V=99
+          # 清洗配置：移除Windows换行\r、删除#注释行，输出为干净的.config
+          sed 's/\r//g; /^#/d' ../k2src/config/k2_16m.config > .config
+          # 自动补齐依赖，无交互
+          make defconfig
+
 
       - name: 预下载源码包（加速编译）
         run: |
